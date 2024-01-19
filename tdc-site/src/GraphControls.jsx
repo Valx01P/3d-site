@@ -1,6 +1,7 @@
 // GraphControls.jsx
 import { useState } from "react";
 import { Vector3 } from "three";
+// import AddSquare from "./AddSquare";
 
 const GraphControls = ({ addPoint }) => {
   const [newPoint, setNewPoint] = useState({ x: 0, y: 0, z: 0 });
@@ -19,7 +20,7 @@ const GraphControls = ({ addPoint }) => {
   };
 
   return (
-    <div className="fixed top-6">
+    <div className="fixed top-2">
       <h2>Add a New Point</h2>
       <label>
         X:
@@ -49,6 +50,7 @@ const GraphControls = ({ addPoint }) => {
         />
       </label>
       <button onClick={handleAddPoint}>Add Point</button>
+      {/* <AddSquare addSquare={addSquare} /> */}
     </div>
   );
 };

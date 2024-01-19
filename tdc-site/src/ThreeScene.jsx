@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Line, Points } from "@react-three/drei";
 import { Vector3 } from "three";
+import AddSquare from "./AddSquare";
 
-const Scene = ({ points, handleResetCamera }) => {
+const Scene = ({ points, squares, handleResetCamera }) => {
   const { camera } = useThree();
   const controlsRef = useRef();
   const initialCameraPosition = useRef();
@@ -35,12 +36,20 @@ const Scene = ({ points, handleResetCamera }) => {
       <OrbitControls ref={controlsRef} />
       <Lines />
       <Dots points={points} />
+      {squares.map((squarePoints, index) => (
+        <Square key={index} points={squarePoints} />
+      ))}
     </>
   );
 };
 
 const ThreeScene = ({ points }) => {
   const handleResetCamera = useRef(() => {});
+  const [squares, setSquares] = useState([]);
+
+  const addSquare = (squarePoints) => {
+    setSquares((prevSquares) => [...prevSquares, squarePoints]);
+  };
 
   return (
     <>
@@ -49,14 +58,19 @@ const ThreeScene = ({ points }) => {
         style={{ height: "70vh", width: "80vw" }}
       >
         <Canvas>
-          <Scene points={points} handleResetCamera={handleResetCamera} />
+          <Scene
+            points={points}
+            squares={squares}
+            handleResetCamera={handleResetCamera}
+          />
         </Canvas>
+        <AddSquare addSquare={addSquare} />
         <div className="absolute top-3 left-3 drop-filter backdrop-blur-lg rounded-sm">
           <button
             className="mb-3 text-gray-200"
             onClick={() => handleResetCamera.current()}
           >
-            Reset Camera ⬅
+            Reset Camera ⬅️
           </button>
           <h1 className="text-cyan-200">TouchScreen Guide: </h1>
           <p className="text-cyan-100 text-sm">One finger to rotate</p>
@@ -64,6 +78,21 @@ const ThreeScene = ({ points }) => {
         </div>
       </div>
     </>
+  );
+};
+
+const Square = ({ points }) => {
+  return (
+    <group>
+      {/* Create lines for the square */}
+      <Line points={points} color="white" lineWidth={5} />
+      {/* Create points for the square corners */}
+      <Points>
+        {points.map((point, index) => (
+          <PointsDot key={index} position={point} />
+        ))}
+      </Points>
+    </group>
   );
 };
 
