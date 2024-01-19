@@ -1,9 +1,156 @@
 import React, { useRef, useEffect } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Line, Points } from "@react-three/drei";
+import { OrbitControls, Line, Points, Html } from "@react-three/drei";
 import { Vector3 } from "three";
+import AddSquare from "./AddSquare";
 
-const Scene = ({ points, handleResetCamera }) => {
+const ThreeScene = ({ points, squares, addSquare }) => {
+  const handleResetCamera = useRef(() => {});
+
+  return (
+    <>
+      <div
+        className="relative bg-black flex justify-center"
+        style={{ height: "70vh", width: "80vw" }}
+      >
+        <Canvas>
+          <Scene
+            points={points}
+            squares={squares}
+            handleResetCamera={handleResetCamera}
+          />
+        </Canvas>
+        <AddSquare addSquare={addSquare} />
+        <div className="absolute top-3 left-3 drop-filter backdrop-blur-lg rounded-sm">
+          <button
+            className="mb-3 text-gray-200"
+            onClick={() => handleResetCamera.current()}
+          >
+            Reset Camera ⬅️
+          </button>
+          <h1 className="text-cyan-200">TouchScreen Guide: </h1>
+          <p className="text-cyan-100 text-sm">One finger to rotate</p>
+          <p className="text-cyan-100 text-sm">Two fingers to move</p>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const Square = ({ squarePoints }) => {
+  return (
+    <group>
+      {/* Create lines for the square */}
+      <Line points={squarePoints} color="white" lineWidth={5} />
+      {/* Create points for the square corners */}
+      <Points>
+        {squarePoints.map((point, index) => (
+          <PointsDot key={index} position={point} />
+        ))}
+      </Points>
+    </group>
+  );
+};
+
+const axisLabelStyle = {
+  position: "absolute",
+  color: "white",
+  fontSize: "16px",
+  fontWeight: "bold",
+};
+
+// Inside the Lines component
+const Lines = () => {
+  const zAxisLabelPosition = new Vector3(0, 0, 20);
+  const xAxisLabelPosition = new Vector3(20, 0, 0);
+  const yAxisLabelPosition = new Vector3(0, 20, 0);
+
+  return (
+    <group>
+      {/* Z-axis line */}
+      <Line
+        points={[0, 0, 0, ...zAxisLabelPosition.toArray()]}
+        color="blue"
+        lineWidth={5}
+      />
+      <Dots points={[new Vector3(0, 0, 0), zAxisLabelPosition]} />
+      <Html>
+        <div
+          className="axis-label z-axis-label"
+          style={{
+            ...axisLabelStyle,
+            top: `${50 + zAxisLabelPosition.y}%`,
+            left: `${50 + zAxisLabelPosition.x}%`,
+          }}
+        >
+          Z
+        </div>
+      </Html>
+
+      {/* X-axis line */}
+      <Line
+        points={[0, 0, 0, ...xAxisLabelPosition.toArray()]}
+        color="red"
+        lineWidth={5}
+      />
+      <Dots points={[new Vector3(0, 0, 0), xAxisLabelPosition]} />
+      <Html>
+        <div
+          className="axis-label x-axis-label"
+          style={{
+            ...axisLabelStyle,
+            top: `${50 + xAxisLabelPosition.y}%`,
+            left: `${50 + xAxisLabelPosition.x}%`,
+          }}
+        >
+          X
+        </div>
+      </Html>
+
+      {/* Y-axis line */}
+      <Line
+        points={[0, 0, 0, ...yAxisLabelPosition.toArray()]}
+        color="green"
+        lineWidth={5}
+      />
+      <Dots points={[new Vector3(0, 0, 0), yAxisLabelPosition]} />
+      <Html>
+        <div
+          className="axis-label y-axis-label"
+          style={{
+            ...axisLabelStyle,
+            top: `${50 + yAxisLabelPosition.y}%`,
+            left: `${50 + yAxisLabelPosition.x}%`,
+          }}
+        >
+          Y
+        </div>
+      </Html>
+    </group>
+  );
+};
+
+const Dots = ({ points }) => {
+  return (
+    <Points>
+      {points.map((point, index) => (
+        <PointsDot key={index} position={point} />
+      ))}
+    </Points>
+  );
+};
+
+const PointsDot = ({ position }) => {
+  return (
+    <mesh position={position}>
+      <sphereGeometry args={[0.2, 32, 32]} />{" "}
+      {/* Adjust the radius and segments */}
+      <meshStandardMaterial color="yellow" />
+    </mesh>
+  );
+};
+
+const Scene = ({ points, squares, handleResetCamera }) => {
   const { camera } = useThree();
   const controlsRef = useRef();
   const initialCameraPosition = useRef();
@@ -35,70 +182,10 @@ const Scene = ({ points, handleResetCamera }) => {
       <OrbitControls ref={controlsRef} />
       <Lines />
       <Dots points={points} />
-    </>
-  );
-};
-
-const ThreeScene = ({ points }) => {
-  const handleResetCamera = useRef(() => {});
-
-  return (
-    <>
-      <div
-        className="relative bg-black flex justify-center"
-        style={{ height: "70vh", width: "80vw" }}
-      >
-        <Canvas>
-          <Scene points={points} handleResetCamera={handleResetCamera} />
-        </Canvas>
-        <div className="absolute top-3 left-3 drop-filter backdrop-blur-lg rounded-sm">
-          <button
-            className="mb-3 text-gray-200"
-            onClick={() => handleResetCamera.current()}
-          >
-            Reset Camera ⬅
-          </button>
-          <h1 className="text-cyan-200">TouchScreen Guide: </h1>
-          <p className="text-cyan-100 text-sm">One finger to rotate</p>
-          <p className="text-cyan-100 text-sm">Two fingers to move</p>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const Lines = () => {
-  return (
-    <group>
-      {/* Z-axis line */}
-      <Line points={[0, 0, 0, 0, 0, 20]} color="blue" lineWidth={5} />
-
-      {/* X-axis line */}
-      <Line points={[0, 0, 0, 20, 0, 0]} color="red" lineWidth={5} />
-
-      {/* Y-axis line */}
-      <Line points={[0, 0, 0, 0, 20, 0]} color="green" lineWidth={5} />
-    </group>
-  );
-};
-
-const Dots = ({ points }) => {
-  return (
-    <Points>
-      {points.map((point, index) => (
-        <PointsDot key={index} position={point} />
+      {squares.map((squarePoints, index) => (
+        <Square key={index} squarePoints={squarePoints} />
       ))}
-    </Points>
-  );
-};
-
-const PointsDot = ({ position }) => {
-  return (
-    <mesh position={position}>
-      <sphereGeometry args={[0.5, 32, 32]} />{" "}
-      {/* Adjust the radius and segments */}
-      <meshStandardMaterial color="yellow" />
-    </mesh>
+    </>
   );
 };
 
