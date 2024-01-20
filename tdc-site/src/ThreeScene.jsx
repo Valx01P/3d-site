@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Line, Points, Html } from "@react-three/drei";
 import { Vector3 } from "three";
@@ -6,11 +6,16 @@ import AddSquare from "./AddSquare";
 
 const ThreeScene = ({ points, squares, addSquare }) => {
   const handleResetCamera = useRef(() => {});
+  const [axisLength, setAxisLength] = useState(20);
+
+  const handleAxisLengthChange = (event) => {
+    setAxisLength(event.target.value);
+  };
 
   return (
     <>
       <div
-        className="relative bg-black flex justify-center"
+        className="relative bg-black flex justify-center items-center"
         style={{ height: "70vh", width: "80vw" }}
       >
         <Canvas>
@@ -18,9 +23,9 @@ const ThreeScene = ({ points, squares, addSquare }) => {
             points={points}
             squares={squares}
             handleResetCamera={handleResetCamera}
+            axisLength={axisLength}
           />
         </Canvas>
-        <AddSquare addSquare={addSquare} />
         <div className="absolute top-3 left-3 drop-filter backdrop-blur-lg rounded-sm">
           <button
             className="mb-3 text-gray-200"
@@ -28,11 +33,20 @@ const ThreeScene = ({ points, squares, addSquare }) => {
           >
             Reset Camera ⬅️
           </button>
+          <input
+            type="range"
+            min="5"
+            max="700"
+            value={axisLength}
+            onChange={handleAxisLengthChange}
+            className="w-20"
+          />
           <h1 className="text-cyan-200">TouchScreen Guide: </h1>
           <p className="text-cyan-100 text-sm">One finger to rotate</p>
           <p className="text-cyan-100 text-sm">Two fingers to move</p>
         </div>
       </div>
+      <AddSquare addSquare={addSquare} />
     </>
   );
 };
@@ -59,71 +73,98 @@ const axisLabelStyle = {
   fontWeight: "bold",
 };
 
-// Inside the Lines component
-const Lines = () => {
-  const zAxisLabelPosition = new Vector3(0, 0, 20);
-  const xAxisLabelPosition = new Vector3(20, 0, 0);
-  const yAxisLabelPosition = new Vector3(0, 20, 0);
+const Lines = ({ axisLength }) => {
+  let interval;
+  if (axisLength <= 50) {
+    interval = 5;
+  } else if (axisLength <= 100) {
+    interval = 10;
+  } else if (axisLength <= 200) {
+    interval = 20;
+  } else if (axisLength <= 300) {
+    interval = 30;
+  } else if (axisLength <= 400) {
+    interval = 40;
+  } else if (axisLength <= 500) {
+    interval = 50;
+  } else {
+    interval = 100;
+  }
+
+  const xAxisLabels = [];
+  for (let i = 0; i <= axisLength; i += interval) {
+    xAxisLabels.push(
+      <Html position={new Vector3(i, 0, 0)} key={`x${i}`}>
+        <div className="axis-label x-axis-label text-xs" style={axisLabelStyle}>
+          {i}
+        </div>
+      </Html>
+    );
+  }
+
+  const yAxisLabels = [];
+  for (let i = 0; i <= axisLength; i += interval) {
+    yAxisLabels.push(
+      <Html position={new Vector3(0, i, 0)} key={`y${i}`}>
+        <div className="axis-label y-axis-label text-xs" style={axisLabelStyle}>
+          {i}
+        </div>
+      </Html>
+    );
+  }
+
+  const zAxisLabels = [];
+  for (let i = 0; i <= axisLength; i += interval) {
+    zAxisLabels.push(
+      <Html position={new Vector3(0, 0, i)} key={`z${i}`}>
+        <div className="axis-label z-axis-label text-xs" style={axisLabelStyle}>
+          {i}
+        </div>
+      </Html>
+    );
+  }
 
   return (
     <group>
-      {/* Z-axis line */}
-      <Line
-        points={[0, 0, 0, ...zAxisLabelPosition.toArray()]}
-        color="blue"
-        lineWidth={5}
-      />
-      <Dots points={[new Vector3(0, 0, 0), zAxisLabelPosition]} />
-      <Html>
-        <div
-          className="axis-label z-axis-label"
-          style={{
-            ...axisLabelStyle,
-            top: `${50 + zAxisLabelPosition.y}%`,
-            left: `${50 + zAxisLabelPosition.x}%`,
-          }}
-        >
-          Z
-        </div>
-      </Html>
-
       {/* X-axis line */}
       <Line
-        points={[0, 0, 0, ...xAxisLabelPosition.toArray()]}
+        points={[new Vector3(0, 0, 0), new Vector3(axisLength, 0, 0)]}
         color="red"
         lineWidth={5}
       />
-      <Dots points={[new Vector3(0, 0, 0), xAxisLabelPosition]} />
-      <Html>
-        <div
-          className="axis-label x-axis-label"
-          style={{
-            ...axisLabelStyle,
-            top: `${50 + xAxisLabelPosition.y}%`,
-            left: `${50 + xAxisLabelPosition.x}%`,
-          }}
-        >
+      <Dots points={[new Vector3(0, 0, 0), new Vector3(axisLength, 0, 0)]} />
+      {xAxisLabels}
+      <Html position={new Vector3(22, 2, 0)}>
+        <div className="axis-label x-axis-label" style={axisLabelStyle}>
           X
         </div>
       </Html>
 
       {/* Y-axis line */}
       <Line
-        points={[0, 0, 0, ...yAxisLabelPosition.toArray()]}
+        points={[new Vector3(0, 0, 0), new Vector3(0, axisLength, 0)]}
         color="green"
         lineWidth={5}
       />
-      <Dots points={[new Vector3(0, 0, 0), yAxisLabelPosition]} />
-      <Html>
-        <div
-          className="axis-label y-axis-label"
-          style={{
-            ...axisLabelStyle,
-            top: `${50 + yAxisLabelPosition.y}%`,
-            left: `${50 + yAxisLabelPosition.x}%`,
-          }}
-        >
+      <Dots points={[new Vector3(0, 0, 0), new Vector3(0, axisLength, 0)]} />
+      {yAxisLabels}
+      <Html position={new Vector3(0, 22, 2)}>
+        <div className="axis-label y-axis-label" style={axisLabelStyle}>
           Y
+        </div>
+      </Html>
+
+      {/* Z-axis line */}
+      <Line
+        points={[new Vector3(0, 0, 0), new Vector3(0, 0, axisLength)]}
+        color="blue"
+        lineWidth={5}
+      />
+      <Dots points={[new Vector3(0, 0, 0), new Vector3(0, 0, axisLength)]} />
+      {zAxisLabels}
+      <Html position={new Vector3(0, 2, 22)}>
+        <div className="axis-label y-axis-label" style={axisLabelStyle}>
+          Z
         </div>
       </Html>
     </group>
@@ -150,7 +191,7 @@ const PointsDot = ({ position }) => {
   );
 };
 
-const Scene = ({ points, squares, handleResetCamera }) => {
+const Scene = ({ points, squares, handleResetCamera, axisLength }) => {
   const { camera } = useThree();
   const controlsRef = useRef();
   const initialCameraPosition = useRef();
@@ -180,7 +221,7 @@ const Scene = ({ points, squares, handleResetCamera }) => {
       <ambientLight intensity={1} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
       <OrbitControls ref={controlsRef} />
-      <Lines />
+      <Lines axisLength={axisLength} />
       <Dots points={points} />
       {squares.map((squarePoints, index) => (
         <Square key={index} squarePoints={squarePoints} />

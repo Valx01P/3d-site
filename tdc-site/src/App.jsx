@@ -20,7 +20,7 @@ function App() {
       <div className="flex justify-center mt-12">
         <GraphControls addPoint={addPoint} />
       </div>
-      <div className="flex justify-center p-12 mt-3">
+      <div className="flex justify-center items-center p-12 mt-3 flex-col">
         <ThreeScene points={points} squares={squares} addSquare={addSquare} />
       </div>
     </>

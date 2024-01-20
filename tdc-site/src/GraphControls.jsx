@@ -1,4 +1,3 @@
-// GraphControls.jsx
 import { useState } from "react";
 import { Vector3 } from "three";
 
@@ -19,7 +18,7 @@ const GraphControls = ({ addPoint }) => {
   };
 
   return (
-    <div className="fixed top-6">
+    <div>
       <h2>Add a New Point</h2>
       <label>
         X:
