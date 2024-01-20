@@ -1,12 +1,56 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Line, Points, Html } from "@react-three/drei";
+import { OrbitControls, Line, Points, Html, Sky } from "@react-three/drei";
+import { Physics, usePlane, useBox, useSphere } from "@react-three/cannon";
 import { Vector3 } from "three";
 import AddSquare from "./AddSquare";
+
+function Plane(props) {
+  const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], ...props }));
+  return (
+    <mesh receiveShadow ref={ref}>
+      <planeGeometry args={[1000, 1000]} />
+      <meshStandardMaterial color="white" />
+    </mesh>
+  );
+}
+
+function Cube(props) {
+  const [ref] = useBox(() => ({ mass: 1, ...props }));
+  return (
+    <mesh castShadow ref={ref}>
+      <boxGeometry />
+      <meshStandardMaterial color="orange" />
+    </mesh>
+  );
+}
+
+function Sphere(props) {
+  const [ref] = useSphere(() => ({ mass: 1, ...props }));
+  return (
+    <mesh castShadow ref={ref}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color="blue" />
+    </mesh>
+  );
+}
 
 const ThreeScene = ({ points, squares, addSquare }) => {
   const handleResetCamera = useRef(() => {});
   const [axisLength, setAxisLength] = useState(20);
+  const [ready, set] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => set(true), 1000);
+    return () => clearTimeout(timeout);
+  }, []);
+  const [spheres, setSpheres] = useState([]);
+
+  const dropSphere = () => {
+    setSpheres((oldSpheres) => [...oldSpheres, { position: [0, 5, 0] }]);
+  };
+  // const dropSphere = (x, y, z) => {
+  //   setSpheres((oldSpheres) => [...oldSpheres, { position: [x, y, z] }]);
+  // };
 
   const handleAxisLengthChange = (event) => {
     setAxisLength(event.target.value);
@@ -14,17 +58,33 @@ const ThreeScene = ({ points, squares, addSquare }) => {
 
   return (
     <>
+      <button onClick={dropSphere}>Drop Sphere</button>
       <div
         className="relative bg-black flex justify-center items-center"
         style={{ height: "70vh", width: "80vw" }}
       >
-        <Canvas>
+        <Canvas dpr={[1, 2]} shadows camera={{ position: [-5, 5, 5], fov: 50 }}>
           <Scene
             points={points}
             squares={squares}
             handleResetCamera={handleResetCamera}
             axisLength={axisLength}
           />
+          <Sky
+            sunPosition={new Vector3(100, 10, 100)}
+            azimuth={0.25}
+            distance={450000}
+          />
+          <Physics>
+            <Plane />
+            <Cube position={[0, 5, 0]} />
+            <Cube position={[0.45, 7, -0.25]} />
+            <Cube position={[-0.45, 9, 0.25]} />
+            {ready && <Cube position={[-0.45, 10, 0.25]} />}
+            {spheres.map((sphere, index) => (
+              <Sphere key={index} position={sphere.position} />
+            ))}
+          </Physics>
         </Canvas>
         <div className="absolute top-3 left-3 drop-filter backdrop-blur-lg rounded-sm">
           <button
@@ -36,7 +96,7 @@ const ThreeScene = ({ points, squares, addSquare }) => {
           <input
             type="range"
             min="5"
-            max="700"
+            max="500"
             value={axisLength}
             onChange={handleAxisLengthChange}
             className="w-20"
