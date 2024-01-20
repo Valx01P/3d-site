@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Line, Points, Html, Sky } from "@react-three/drei";
-import { Physics, usePlane, useBox, useSphere } from "@react-three/cannon";
-import { Vector3 } from "three";
+import { Physics, usePlane, useSphere } from "@react-three/cannon";
+import { Vector3, Raycaster } from "three";
 import AddSquare from "./AddSquare";
 
 function Plane(props) {
@@ -15,15 +15,61 @@ function Plane(props) {
   );
 }
 
-function Cube(props) {
-  const [ref] = useBox(() => ({ mass: 1, ...props }));
+// Cube component
+const Cube = ({ setDragging }) => {
+  const meshRef = useRef();
+  const { camera } = useThree();
+  const [dragging, setLocalDragging] = useState(false);
+  const [position, setPosition] = useState([5, 5, 5]); // Initial position
+
+  const raycaster = new Raycaster();
+  const mouse = new Vector3();
+
+  const handleMouseDown = (event) => {
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
+    setLocalDragging(true);
+    setDragging(true);
+  };
+
+  const handleMouseUp = () => {
+    setLocalDragging(false);
+    setDragging(false);
+  };
+
+  const handleMouseMove = (event) => {
+    if (!dragging) return;
+
+    const { clientX, clientY } = event;
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObject(meshRef.current);
+
+    if (intersects.length > 0) {
+      const { point } = intersects[0];
+      setPosition([point.x, point.y, point.z]); // Update position based on intersection point
+    }
+  };
+
   return (
-    <mesh castShadow ref={ref}>
+    <mesh
+      ref={meshRef}
+      position={position}
+      onClick={() => console.log("Cube clicked")}
+      onPointerDown={handleMouseDown}
+      onPointerUp={handleMouseUp}
+      onPointerMove={handleMouseMove}
+      scale={dragging ? [1.5, 1.5, 1.5] : [1, 1, 1]} // Make the cube larger when dragging
+    >
       <boxGeometry />
       <meshStandardMaterial color="orange" />
     </mesh>
   );
-}
+};
 
 function Sphere(props) {
   const [ref] = useSphere(() => ({ mass: 1, ...props }));
@@ -44,13 +90,18 @@ const ThreeScene = ({ points, squares, addSquare }) => {
     return () => clearTimeout(timeout);
   }, []);
   const [spheres, setSpheres] = useState([]);
+  const [dragging, setDragging] = useState(false);
+  const orbitControlsRef = useRef();
+  useEffect(() => {
+    // Update OrbitControls enabled status based on dragging
+    if (orbitControlsRef.current) {
+      orbitControlsRef.current.enabled = !dragging;
+    }
+  }, [dragging]);
 
   const dropSphere = () => {
     setSpheres((oldSpheres) => [...oldSpheres, { position: [0, 5, 0] }]);
   };
-  // const dropSphere = (x, y, z) => {
-  //   setSpheres((oldSpheres) => [...oldSpheres, { position: [x, y, z] }]);
-  // };
 
   const handleAxisLengthChange = (event) => {
     setAxisLength(event.target.value);
@@ -69,6 +120,7 @@ const ThreeScene = ({ points, squares, addSquare }) => {
             squares={squares}
             handleResetCamera={handleResetCamera}
             axisLength={axisLength}
+            setDragging={setDragging} // Pass the setter function
           />
           <Sky
             sunPosition={new Vector3(100, 10, 100)}
@@ -77,10 +129,7 @@ const ThreeScene = ({ points, squares, addSquare }) => {
           />
           <Physics>
             <Plane />
-            <Cube position={[0, 5, 0]} />
-            <Cube position={[0.45, 7, -0.25]} />
-            <Cube position={[-0.45, 9, 0.25]} />
-            {ready && <Cube position={[-0.45, 10, 0.25]} />}
+            <Cube setDragging={setDragging} /> {/* Pass the setter function */}
             {spheres.map((sphere, index) => (
               <Sphere key={index} position={sphere.position} />
             ))}
@@ -251,9 +300,15 @@ const PointsDot = ({ position }) => {
   );
 };
 
-const Scene = ({ points, squares, handleResetCamera, axisLength }) => {
+const Scene = ({
+  points,
+  squares,
+  handleResetCamera,
+  axisLength,
+  setDragging,
+}) => {
   const { camera } = useThree();
-  const controlsRef = useRef();
+  const orbitControlsRef = useRef();
   const initialCameraPosition = useRef();
 
   useEffect(() => {
@@ -265,22 +320,22 @@ const Scene = ({ points, squares, handleResetCamera, axisLength }) => {
   useEffect(() => {
     // Update the reset function to use the current camera and controls
     handleResetCamera.current = () => {
-      if (controlsRef.current) {
+      if (orbitControlsRef.current) {
         // Reset the camera to its initial position
         camera.position.copy(initialCameraPosition.current);
         // Set the z value to 40 (how far the camera is away)
         camera.position.z = 40;
         camera.lookAt(new Vector3(0, 0, 0));
-        controlsRef.current.update();
+        orbitControlsRef.current.update();
       }
     };
-  }, [camera, controlsRef, handleResetCamera]);
+  }, [camera, orbitControlsRef, handleResetCamera]);
 
   return (
     <>
       <ambientLight intensity={1} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-      <OrbitControls ref={controlsRef} />
+      <OrbitControls ref={orbitControlsRef} />
       <Lines axisLength={axisLength} />
       <Dots points={points} />
       {squares.map((squarePoints, index) => (
