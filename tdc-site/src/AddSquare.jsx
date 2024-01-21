@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Vector3 } from "three";
 
 const AddSquare = ({ addSquare }) => {
-  const [length, setLength] = useState(4);
+  const [length, setLength] = useState(5);
   const [xAxis, setXAxis] = useState(5);
   const [yAxis, setYAxis] = useState(5);
 
@@ -23,10 +23,13 @@ const AddSquare = ({ addSquare }) => {
     // Add square to the scene
     addSquare(squarePoints);
 
-    // Clear input fields after adding a square
-    setLength(1);
-    setXAxis(0);
-    setYAxis(0);
+    setLength(getRandomValue(5, 15));
+    setXAxis(getRandomValue(5, 300));
+    setYAxis(getRandomValue(5, 300));
+  };
+
+  const getRandomValue = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
   };
 
   return (

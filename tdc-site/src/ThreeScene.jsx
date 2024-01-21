@@ -4,6 +4,11 @@ import { OrbitControls, Line, Points, Html, Sky } from "@react-three/drei";
 import { Physics, usePlane, useSphere } from "@react-three/cannon";
 import { Vector3, Raycaster } from "three";
 import AddSquare from "./AddSquare";
+import AddCube from "./AddCube";
+
+const getRandomValue = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
 
 function Plane(props) {
   const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], ...props }));
@@ -15,8 +20,17 @@ function Plane(props) {
   );
 }
 
-// Cube component
-const Cube = ({ setDragging }) => {
+const Cube = ({ cubeFaces }) => {
+  return (
+    <group>
+      {cubeFaces.map((facePoints, index) => (
+        <Square key={index} squarePoints={facePoints} />
+      ))}
+    </group>
+  );
+};
+
+const DragCube = ({ setDragging }) => {
   const meshRef = useRef();
   const { camera } = useThree();
   const [dragging, setLocalDragging] = useState(false);
@@ -72,16 +86,16 @@ const Cube = ({ setDragging }) => {
 };
 
 function Sphere(props) {
-  const [ref] = useSphere(() => ({ mass: 1, ...props }));
+  const [ref] = useSphere(() => ({ mass: getRandomValue(1, 2), ...props }));
   return (
     <mesh castShadow ref={ref}>
-      <sphereGeometry args={[1, 32, 32]} />
+      <sphereGeometry args={[getRandomValue(1, 3), 32, 32]} />
       <meshStandardMaterial color="blue" />
     </mesh>
   );
 }
 
-const ThreeScene = ({ points, squares, addSquare }) => {
+const ThreeScene = ({ points, squares, cubes, addSquare, addCube }) => {
   const handleResetCamera = useRef(() => {});
   const [axisLength, setAxisLength] = useState(20);
   const [ready, set] = useState(false);
@@ -100,7 +114,16 @@ const ThreeScene = ({ points, squares, addSquare }) => {
   }, [dragging]);
 
   const dropSphere = () => {
-    setSpheres((oldSpheres) => [...oldSpheres, { position: [0, 5, 0] }]);
+    setSpheres((oldSpheres) => [
+      ...oldSpheres,
+      {
+        position: [
+          getRandomValue(5, 200),
+          getRandomValue(5, 200),
+          getRandomValue(5, 200),
+        ],
+      },
+    ]);
   };
 
   const handleAxisLengthChange = (event) => {
@@ -118,6 +141,7 @@ const ThreeScene = ({ points, squares, addSquare }) => {
           <Scene
             points={points}
             squares={squares}
+            cubes={cubes}
             handleResetCamera={handleResetCamera}
             axisLength={axisLength}
             setDragging={setDragging} // Pass the setter function
@@ -129,7 +153,11 @@ const ThreeScene = ({ points, squares, addSquare }) => {
           />
           <Physics>
             <Plane />
-            <Cube setDragging={setDragging} /> {/* Pass the setter function */}
+            <DragCube setDragging={setDragging} />{" "}
+            {/* Pass the setter function */}
+            {cubes.map((cubeFaces, index) => (
+              <Cube key={index} cubeFaces={cubeFaces} />
+            ))}
             {spheres.map((sphere, index) => (
               <Sphere key={index} position={sphere.position} />
             ))}
@@ -156,6 +184,7 @@ const ThreeScene = ({ points, squares, addSquare }) => {
         </div>
       </div>
       <AddSquare addSquare={addSquare} />
+      <AddCube addCube={addCube} /> {/* Add the new AddCube component */}
     </>
   );
 };
@@ -295,7 +324,7 @@ const PointsDot = ({ position }) => {
     <mesh position={position}>
       <sphereGeometry args={[0.2, 32, 32]} />{" "}
       {/* Adjust the radius and segments */}
-      <meshStandardMaterial color="yellow" />
+      <meshStandardMaterial color="black" />
     </mesh>
   );
 };
@@ -346,7 +375,6 @@ const Scene = ({
 };
 
 export default ThreeScene;
-
 //-------------------------------------------------------------------------------------------------------------------
 //3 lines
 

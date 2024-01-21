@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Vector3 } from "three";
 
+const getRandomValue = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
 const GraphControls = ({ addPoint }) => {
-  const [newPoint, setNewPoint] = useState({ x: 0, y: 0, z: 0 });
+  const [newPoint, setNewPoint] = useState({ x: 5, y: 5, z: 0 });
 
   const handleInputChange = (e) => {
     setNewPoint({
@@ -14,7 +18,11 @@ const GraphControls = ({ addPoint }) => {
   const handleAddPoint = () => {
     addPoint(new Vector3(newPoint.x, newPoint.y, newPoint.z));
     // Clear input fields after adding a point
-    setNewPoint({ x: 0, y: 0, z: 0 });
+    setNewPoint({
+      x: getRandomValue(1, 100),
+      y: getRandomValue(1, 100),
+      z: getRandomValue(1, 100),
+    });
   };
 
   return (
