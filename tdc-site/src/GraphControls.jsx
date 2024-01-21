@@ -6,7 +6,7 @@ const getRandomValue = (min, max) => {
 };
 
 const GraphControls = ({ addPoint }) => {
-  const [newPoint, setNewPoint] = useState({ x: 5, y: 5, z: 0 });
+  const [newPoint, setNewPoint] = useState({ x: 2, y: 2, z: 0 });
 
   const handleInputChange = (e) => {
     setNewPoint({
@@ -19,9 +19,9 @@ const GraphControls = ({ addPoint }) => {
     addPoint(new Vector3(newPoint.x, newPoint.y, newPoint.z));
     // Clear input fields after adding a point
     setNewPoint({
-      x: getRandomValue(1, 100),
-      y: getRandomValue(1, 100),
-      z: getRandomValue(1, 100),
+      x: getRandomValue(1, 20),
+      y: getRandomValue(1, 20),
+      z: getRandomValue(1, 20),
     });
   };
 

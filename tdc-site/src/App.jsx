@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ThreeScene from "./ThreeScene";
 import GraphControls from "./GraphControls";
-import { Vector3 } from "three";
-import AddSquare from "./AddSquare";
-import AddCube from "./AddCube";
+import Bonus from "./Bonus";
 
 function App() {
   const [points, setPoints] = useState([]);
@@ -35,6 +33,12 @@ function App() {
           addSquare={addSquare}
           addCube={addCube}
         />
+        <div
+          className="relative bg-black flex justify-center items-center"
+          style={{ height: "70vh", width: "80vw" }}
+        >
+          <Bonus />
+        </div>
       </div>
     </>
   );

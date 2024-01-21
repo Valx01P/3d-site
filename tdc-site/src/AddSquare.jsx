@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Vector3 } from "three";
 
 const AddSquare = ({ addSquare }) => {
