@@ -137,7 +137,7 @@ const ThreeScene = ({ points, squares, cubes, addSquare, addCube }) => {
         className="relative bg-black flex justify-center items-center"
         style={{ height: "70vh", width: "80vw" }}
       >
-        <Canvas dpr={[1, 2]} shadows camera={{ position: [-5, 5, 5], fov: 50 }}>
+        <Canvas dpr={[1, 2]} shadows camera={{ position: [0, 10, 0], fov: 56 }}>
           <Scene
             points={points}
             squares={squares}
